@@ -40,14 +40,15 @@ public class LeadService {
                 .orElseThrow(() -> new RuntimeException("Lead not found"));
     }
 
-    // Excel Upload
+    //upload excel
     public String uploadExcel(MultipartFile file) {
 
         if (file == null || file.isEmpty()) {
             return "File is empty or not provided";
         }
 
-        List<Lead> leadList = new ArrayList<>();
+        int insertedCount = 0;
+        int updatedCount = 0;
 
         try (InputStream is = file.getInputStream();
              Workbook workbook = WorkbookFactory.create(is)) {
@@ -64,58 +65,42 @@ public class LeadService {
 
                 Lead lead = new Lead();
 
-                // Safe string reading
                 lead.setFullName(getCellValueAsString(row.getCell(0)));
                 lead.setPhoneNumber(getCellValueAsString(row.getCell(1)));
 
-                // ENUM - EnquirySource
                 try {
                     lead.setEnquirySource(
-                            Lead.EnquirySource.valueOf(
-                                    getCellValueAsString(row.getCell(2))
-                            )
+                        Lead.EnquirySource.valueOf(getCellValueAsString(row.getCell(2)))
                     );
                 } catch (Exception e) {
                     return "Invalid EnquirySource at row: " + (row.getRowNum() + 1);
                 }
 
-                // ENUM - ServiceType
                 try {
                     lead.setServiceType(
-                            Lead.ServiceType.valueOf(
-                                    getCellValueAsString(row.getCell(3))
-                            )
+                        Lead.ServiceType.valueOf(getCellValueAsString(row.getCell(3)))
                     );
                 } catch (Exception e) {
                     return "Invalid ServiceType at row: " + (row.getRowNum() + 1);
                 }
 
-                // DATE Handling
                 Cell dateCell = row.getCell(4);
                 if (dateCell != null) {
                     if (dateCell.getCellType() == CellType.NUMERIC &&
                             DateUtil.isCellDateFormatted(dateCell)) {
-
                         lead.setprojectDate(
-                                dateCell.getLocalDateTimeCellValue().toLocalDate());
-
+                            dateCell.getLocalDateTimeCellValue().toLocalDate());
                     } else {
                         DateTimeFormatter formatter =
-                                DateTimeFormatter.ofPattern("dd-MM-yyyy");
-
+                            DateTimeFormatter.ofPattern("dd-MM-yyyy");
                         lead.setprojectDate(
-                                LocalDate.parse(
-                                        getCellValueAsString(dateCell),
-                                        formatter));
+                            LocalDate.parse(getCellValueAsString(dateCell), formatter));
                     }
                 }
 
-                // ENUM - LeadStatus
                 try {
                     lead.setStatus(
-                            Lead.LeadStatus.valueOf(
-                                    getCellValueAsString(row.getCell(5))
-                            )
+                        Lead.LeadStatus.valueOf(getCellValueAsString(row.getCell(5)))
                     );
                 } catch (Exception e) {
                     return "Invalid LeadStatus at row: " + (row.getRowNum() + 1);
@@ -125,18 +110,37 @@ public class LeadService {
                 lead.setLocation(getCellValueAsString(row.getCell(7)));
                 lead.setType(getCellValueAsString(row.getCell(8)));
 
-                leadList.add(lead);
+                // Deduplication & Update or Insert logic
+                boolean exists = repository.findByPhoneNumber(lead.getPhoneNumber()).isPresent();
+
+                if (exists) {
+                    Lead existing = repository.findByPhoneNumber(lead.getPhoneNumber()).get();
+                    existing.setFullName(lead.getFullName());
+                    existing.setBusinessName(lead.getBusinessName());
+                    existing.setLocation(lead.getLocation());
+                    existing.setEnquirySource(lead.getEnquirySource());
+                    existing.setServiceType(lead.getServiceType());
+                    existing.setStatus(lead.getStatus());
+                    existing.setprojectDate(lead.getprojectDate());
+                    existing.setType(lead.getType());
+
+                    repository.save(existing);
+                    updatedCount++;  // ✔ now updatedCount is defined
+                } else {
+                    repository.save(lead);
+                    insertedCount++;
+                }
             }
 
-            repository.saveAll(leadList);
-
-            return "Excel data uploaded successfully. Total records: " + leadList.size();
+            return "Excel upload completed. Inserted: " + insertedCount 
+                 + ", Updated: " + updatedCount;
 
         } catch (Exception e) {
             e.printStackTrace();
             return "Excel upload failed: " + e.getMessage();
         }
     }
+    
     //helper method for upload file 
     private String getCellValueAsString(Cell cell) {
 

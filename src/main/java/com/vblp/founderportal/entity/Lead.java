@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 
 @Entity
 @Table(name = "leads")
@@ -67,6 +69,7 @@ public class Lead {
     @Column(name = "status", nullable = false, length = 20) // previously caused truncation
     private LeadStatus status;
 
+    @JsonFormat(pattern = "dd-MM-yyyy")
     @Column(name = "project_date", nullable = false)
     private LocalDate projectDate;
     

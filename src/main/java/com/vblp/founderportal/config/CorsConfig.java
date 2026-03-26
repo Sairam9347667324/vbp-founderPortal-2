@@ -19,7 +19,8 @@ public class CorsConfig {
 
                         // ✅ PRODUCTION: Allow ONLY your frontend domain
                         // Previously: .allowedOrigins("*")
-                        .allowedOrigins("https://crm.vblptechsolutions.com")
+                        .allowedOrigins("https://crm.vblptechsolutions.com",
+                        "http://localhost:*")
 
                         // ✅ Allowed HTTP methods
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")

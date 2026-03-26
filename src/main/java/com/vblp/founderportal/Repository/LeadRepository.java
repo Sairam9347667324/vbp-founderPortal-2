@@ -29,6 +29,9 @@ public interface LeadRepository extends JpaRepository<Lead, Long> {
     List<Lead> findByServiceType(ServiceType serviceType);
     
     List<Lead> findByEnquirySource(EnquirySource enquirySource);
+    
+
+    Optional<Lead> findByPhoneNumber(String phoneNumber);
 
     // Popup
     @Query("SELECT new com.vblp.founderportal.DTO.PendingLeadDTO(l.fullName, l.phoneNumber) " +
