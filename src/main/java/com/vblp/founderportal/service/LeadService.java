@@ -88,12 +88,12 @@ public class LeadService {
                 if (dateCell != null) {
                     if (dateCell.getCellType() == CellType.NUMERIC &&
                             DateUtil.isCellDateFormatted(dateCell)) {
-                        lead.setprojectDate(
+                        lead.setProjectDate(
                             dateCell.getLocalDateTimeCellValue().toLocalDate());
                     } else {
                         DateTimeFormatter formatter =
                             DateTimeFormatter.ofPattern("dd-MM-yyyy");
-                        lead.setprojectDate(
+                        lead.setProjectDate(
                             LocalDate.parse(getCellValueAsString(dateCell), formatter));
                     }
                 }
@@ -121,7 +121,7 @@ public class LeadService {
                     existing.setEnquirySource(lead.getEnquirySource());
                     existing.setServiceType(lead.getServiceType());
                     existing.setStatus(lead.getStatus());
-                    existing.setprojectDate(lead.getprojectDate());
+                    existing.setProjectDate(lead.getProjectDate());
                     existing.setType(lead.getType());
 
                     repository.save(existing);

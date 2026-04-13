@@ -23,6 +23,7 @@ import com.vblp.founderportal.service.LeadService;
 
 @RestController
 @RequestMapping("/api/leads")
+@CrossOrigin("http://localhost:8080")
 public class LeadController {
 
     @Autowired
@@ -35,14 +36,15 @@ public class LeadController {
     }
 
     // 1️⃣ Create Lead
-    @PostMapping
-    public ResponseEntity<String> createLead(@RequestBody Lead lead) {
-        leadRepository.save(lead);
-        return ResponseEntity.ok("All details added successfully");
+    @PostMapping("/save")
+    public ResponseEntity<Lead> createLead(@RequestBody Lead lead) {
+    	Lead saved =  leadRepository.save(lead);
+        
+        return ResponseEntity.ok(saved);
     }
 
     // 2️⃣ Get All Leads
-    @GetMapping
+    @GetMapping("/getAll")
     public ResponseEntity<List<Lead>> getAllLeads() {
         return ResponseEntity.ok(leadRepository.findAll());
     }
@@ -64,7 +66,7 @@ public class LeadController {
     // 4️⃣ Update Lead
     @PutMapping("/{id}")
     public ResponseEntity<String> updateLead(@PathVariable Long id,
-                                             @RequestBody Lead updatedLead) {
+            @RequestBody Lead updatedLead) {
 
         Optional<Lead> optionalLead = leadRepository.findById(id);
 
@@ -79,7 +81,7 @@ public class LeadController {
             existingLead.setEnquirySource(updatedLead.getEnquirySource());
             existingLead.setServiceType(updatedLead.getServiceType());
             existingLead.setStatus(updatedLead.getStatus());
-            existingLead.setprojectDate(updatedLead.getprojectDate());
+            existingLead.setProjectDate(updatedLead.getProjectDate());
 
             leadRepository.save(existingLead);
 
@@ -185,7 +187,7 @@ public class LeadController {
     }
 
     // 1️⃣1️⃣ Popup for New Leads
-    @GetMapping("/Newlead")
+    @GetMapping("/newlead")
     public ResponseEntity<?> getPendingLeads() {
         List<PendingLeadDTO> pendingLeads = leadRepository.findNewLeads(LeadStatus.Newlead);
 

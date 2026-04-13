@@ -2,14 +2,14 @@ package com.vblp.founderportal.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.*;
 
 @Configuration
 public class CorsConfig {
 
     @Bean
     public WebMvcConfigurer corsConfigurer() {
+
         return new WebMvcConfigurer() {
 
             @Override
@@ -17,21 +17,30 @@ public class CorsConfig {
 
                 registry.addMapping("/**")
 
-                        // ✅ PRODUCTION: Allow ONLY your frontend domain
-                        // Previously: .allowedOrigins("*")
-                        .allowedOrigins("https://crm.vblptechsolutions.com",
-                        "http://localhost:*")
+                        // ✅ PRODUCTION DOMAIN
+                        .allowedOrigins(
+                                "https://crm.vblptechsolutions.com",
 
-                        // ✅ Allowed HTTP methods
+                                // ✅ LOCAL FRONTEND (Angular / React)
+                                "http://localhost:4200",
+                                "http://localhost:3000"
+                        )
+                        
+                        .allowedOrigins("http://localhost:5173")
+                       
+                        // ✅ IF you really want wildcard ports → use this instead of above:
+                        // .allowedOriginPatterns("http://localhost:*")
+
+                        // ✅ HTTP METHODS
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
 
-                        // ✅ Allow all headers from frontend
+                        // ✅ HEADERS
                         .allowedHeaders("*")
 
-                        // ✅ Allow cookies / authorization headers if needed
+                        // ✅ IMPORTANT for JWT / Cookies / Authorization headers
                         .allowCredentials(true)
 
-                        // ✅ Cache preflight request for 1 hour (performance improvement)
+                        // ✅ CACHE PREFLIGHT (performance)
                         .maxAge(3600);
             }
         };

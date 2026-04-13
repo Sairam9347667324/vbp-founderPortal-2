@@ -10,50 +10,51 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/invoices")
+@CrossOrigin("http://localhost:8080")
 public class InvoiceController {
 
     @Autowired
     private InvoiceService invoiceService;
 
-    // ================= CREATE =================
+    // ================= 1)CREATE =================
     @PostMapping
-    public String createInvoice(@RequestBody InvoiceDTO dto) {
+    public String createinvoice(@RequestBody InvoiceDTO dto) {
         return invoiceService.createInvoice(dto);
     }
 
-    // ================= GET ALL =================
+    // ================= 2)GET ALL =================
     @GetMapping
-    public List<InvoiceDTO> getAllInvoices() {
+    public List<InvoiceDTO> getAllinvoices() {
         return invoiceService.getAllInvoices();
     }
 
-    // ================= GET BY ID =================
+    // ================= 3)GET BY ID =================
     @GetMapping("/{id}")
-    public InvoiceDTO getInvoiceById(@PathVariable Long id) {
+    public InvoiceDTO getinvoiceById(@PathVariable Long id) {
         return invoiceService.getInvoiceById(id);
     }
 
-    // ================= UPDATE =================
+    // =================4) UPDATE =================
     @PutMapping("/{id}")
     public String updateInvoice(@PathVariable Long id,
                                 @RequestBody InvoiceDTO dto) {
         return invoiceService.updateInvoice(id, dto);
     }
 
-    // ================= DELETE =================
+    // =================5) DELETE =================
     @DeleteMapping("/{id}")
     public String deleteInvoice(@PathVariable Long id) {
         return invoiceService.deleteInvoice(id);
     }
 
-    // ================= FILTER BY STATUS =================
+    // =================6) FILTER BY STATUS =================
     @GetMapping("/status/{status}")
     public List<InvoiceDTO> getInvoicesByStatus(@PathVariable String status) {
         return invoiceService.getInvoicesByStatus(status);
     }
 
-    // ================= UPDATE STATUS ONLY =================
-    @PatchMapping("/{id}/status/{status}")
+    // =================7) UPDATE STATUS ONLY =================
+    @PutMapping("/{id}/status/{status}")
     public String updateInvoiceStatus(@PathVariable Long id,
                                       @PathVariable String status) {
         return invoiceService.updateInvoiceStatus(id, status);

@@ -2,73 +2,91 @@ package com.vblp.founderportal.config;
 
 import java.io.IOException;
 import java.util.Collections;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private JwtTokenService jwtTokenService;
+    private static final Logger logger =
+            LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+
+    private final JwtTokenService jwtTokenService;
+
+    public JwtAuthenticationFilter(JwtTokenService jwtTokenService) {
+        this.jwtTokenService = jwtTokenService;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+                                   HttpServletResponse response,
+                                   FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Step 1: Get Authorization header
-        String authHeader = request.getHeader("Authorization");
+        final String authHeader = request.getHeader("Authorization");
 
-        // Step 2: Check Bearer token
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        logger.info("➡️ Incoming Request: {} {}", request.getMethod(), request.getRequestURI());
 
-            String token = authHeader.substring(7);
-
-            try {
-                // Step 3: Validate token
-                if (jwtTokenService.validateToken(token)) {
-
-                    // Step 4: Check if already authenticated
-                    if (SecurityContextHolder.getContext().getAuthentication() == null) {
-
-                        // Step 5: Extract username
-                        String username = jwtTokenService.extractUsername(token);
-
-                        // Step 6: Create Authentication object (NO roles)
-                        UsernamePasswordAuthenticationToken authToken =
-                                new UsernamePasswordAuthenticationToken(
-                                        username,
-                                        null,
-                                        Collections.emptyList()
-                                );
-
-                        // Step 7: Attach request details
-                        authToken.setDetails(
-                                new WebAuthenticationDetailsSource().buildDetails(request)
-                        );
-
-                        // Step 8: Set authentication in context
-                        SecurityContextHolder.getContext().setAuthentication(authToken);
-                    }
-                }
-
-            } catch (Exception e) {
-                // Optional: log error (avoid breaking request flow)
-                System.out.println("JWT Authentication Error: " + e.getMessage());
-            }
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            logger.warn("⚠️ Missing or invalid Authorization header");
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        // Step 9: Continue filter chain
+        final String token = authHeader.substring(7);
+
+        try {
+            logger.info("🔑 Token received: {}", token);
+
+            String username = jwtTokenService.extractUsername(token);
+            logger.info("👤 Extracted Username: {}", username);
+
+            boolean isValid = jwtTokenService.validateToken(token);
+            logger.info("✅ Token Valid: {}", isValid);
+
+            if (username != null &&
+                SecurityContextHolder.getContext().getAuthentication() == null &&
+                isValid) {
+
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(
+                                username,
+                                null,
+                                Collections.emptyList()
+                        );
+
+                authToken.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request)
+                );
+
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                logger.info("🎉 Authentication successful for user: {}", username);
+
+                // 🔥 ADD THIS DEBUG LINE RIGHT HERE
+                System.out.println("AUTH OBJECT: " +
+                        SecurityContextHolder.getContext().getAuthentication());
+            } else {
+                logger.warn("❌ Authentication skipped (invalid token or already authenticated)");
+            }
+
+        } catch (Exception e) {
+            logger.error("🚫 JWT Processing Error: {}", e.getMessage());
+            e.printStackTrace(); // 🔥 ALSO IMPORTANT FOR DEBUG
+        }
+
         filterChain.doFilter(request, response);
     }
 }

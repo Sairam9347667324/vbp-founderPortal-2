@@ -69,7 +69,7 @@ public class Lead {
     @Column(name = "status", nullable = false, length = 20) // previously caused truncation
     private LeadStatus status;
 
-    @JsonFormat(pattern = "dd-MM-yyyy")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     @Column(name = "project_date", nullable = false)
     private LocalDate projectDate;
     
@@ -134,10 +134,10 @@ public class Lead {
 		this.status = status;
 	}
 
-   public LocalDate getprojectDate() {
+   public LocalDate getProjectDate() {
 		return projectDate;
 	}
-   public void setprojectDate(LocalDate projectDate) {
+   public void setProjectDate(LocalDate projectDate) {
 		this.projectDate = projectDate;
 	}
 
@@ -151,7 +151,7 @@ public class Lead {
 
 	public Lead(Long id, String fullName, String businessName, String location, String phoneNumber,
 			EnquirySource enquirySource, ServiceType serviceType, LeadStatus status, LocalDate projectDate,
-			LocalDateTime acceptDate, String type) {
+			 String type) {
 		super();
 		this.id = id;
 		this.fullName = fullName;
